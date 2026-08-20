@@ -1,123 +1,70 @@
 # AfiuCMS
 
-**AfiuCMS** is a modern, open-source content management system built with PHP.
+AfiuCMS is an experimental, open-source CMS written in PHP 8.4. It is being built as a small, understandable core with a web installer, administration panel, content management, media library, settings and an installable theme system.
 
-The project aims to provide a simple, modular, and extensible platform for building and managing websites without requiring users to write code.
+> **Alpha software:** this repository is under active development and is not production-ready yet.
 
-> AfiuCMS is currently under active development.
+## Current alpha features
 
-## ✨ Planned Features
+- Web-based first-run installer
+- MySQL + PDO database layer and migration runner
+- Admin account creation and session authentication
+- CSRF protection for state-changing requests
+- Admin dashboard
+- Pages and blog posts CRUD
+- Draft/published content states
+- Basic media library with MIME validation and private storage
+- General site settings
+- Theme discovery, activation and ZIP installation
+- Bundled `Afiu Default` theme
+- Public homepage, pages, blog index and post routes
+- Environment configuration via `.env`
+- Error logging and development error screen
+- Apache rewrite file and PHP built-in-server router
 
-* Modern administration dashboard
-* Page and content management
-* Blog posts, categories, and tags
-* Media library
-* User authentication
-* Role and permission management
-* Menu management
-* SEO settings
-* Site configuration
-* Modular theme architecture
-* Theme installation via ZIP packages
-* Theme activation and customization
-* Multiple built-in themes
-* Plugin architecture
-* Backup and export tools
-* Web-based installation wizard
+## Requirements
 
-## 🎨 Theme System
+- PHP 8.4+
+- Composer
+- MySQL 8+ or compatible MariaDB
+- PDO MySQL
+- Fileinfo
+- Zip extension for theme ZIP installation
 
-AfiuCMS will include a modular theme system that allows administrators to:
+## Local setup
 
-* Install themes
-* Activate or switch themes
-* Upload theme packages
-* Customize supported theme settings
-* Develop third-party themes
+```bash
+composer install
+composer serve
+```
 
-Themes will contain metadata describing their name, version, author, description, and other compatibility information.
+Then open `http://127.0.0.1:8000`. AfiuCMS will redirect to `/install` until installation is complete.
 
-## 🧱 Project Structure
+The installer asks for database credentials, site details and the first administrator account. It writes the local `.env`, runs migrations and creates the initial data.
+
+## Project structure
 
 ```text
 afiu-cms/
-├── app/
-├── config/
-├── database/
-├── public/
-├── storage/
-├── themes/
-├── .gitignore
-├── LICENSE
-└── README.md
+├── app/                 # Core, controllers and middleware
+├── bootstrap/           # Application bootstrapping
+├── config/              # Runtime configuration
+├── database/migrations/ # Database migrations
+├── public/              # Web root
+├── resources/views/     # Core/admin views
+├── routes/              # Route definitions
+├── storage/             # Logs, sessions, uploads and temporary files
+└── themes/              # Installable themes
 ```
 
-## 🛠 Technology
+## Theme packages
 
-AfiuCMS is initially being developed with:
+A theme is a directory containing a `theme.json`, a `views/` directory and optional `assets/`. ZIP packages must place `theme.json` at the archive root. Themes are trusted code because PHP view files execute on the server; only install themes from sources you trust.
 
-* PHP
-* MySQL
-* HTML
-* CSS
-* JavaScript
-* Git
+## Security status
 
-Additional technologies may be introduced as the project evolves.
+The alpha includes password hashing, session regeneration, CSRF protection, prepared SQL statements, MIME-checked media uploads, private upload storage and ZIP path validation. It still needs a broader security review, automated tests, permissions/roles beyond administrator, hardened deployment documentation and release signing before production use.
 
-## 🗺 Roadmap
+## License
 
-### v0.1
-
-* Core project architecture
-* Application bootstrap
-* Configuration system
-* Database connection
-* Basic routing
-
-### v0.2
-
-* Authentication
-* Administration dashboard
-* User management
-
-### v0.3
-
-* Page management
-* Content editor
-* Site settings
-
-### v0.4
-
-* Theme engine
-* Built-in themes
-* Theme activation
-
-### v0.5
-
-* Media library
-* Blog system
-* Categories and tags
-
-### v0.6
-
-* Theme installer
-* Theme package validation
-
-### Future
-
-* Plugin architecture
-* REST API
-* Backup and migration tools
-* Theme ecosystem
-* Developer documentation
-
-## 🚧 Development Status
-
-AfiuCMS is in the early stages of development and is not yet intended for production use.
-
-APIs, database structures, and internal architecture may change during development.
-
-## 📄 License
-
-AfiuCMS is open-source software licensed under the MIT License.
+MIT

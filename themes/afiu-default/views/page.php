@@ -1,0 +1,1 @@
+<article class="article"><h1><?= e($page['title']) ?></h1><?php if (!empty($page['excerpt'])): ?><p class="lead"><?= e($page['excerpt']) ?></p><?php endif; ?><div class="prose"><?= $page['body'] ?></div></article>

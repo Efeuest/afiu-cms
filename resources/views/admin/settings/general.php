@@ -1,0 +1,2 @@
+<?php $pageTitle = 'Settings'; ?>
+<form method="post" action="/admin/settings"><?= csrf_field() ?><div class="card" style="max-width:760px"><div class="field"><label>Site name</label><input name="site_name" value="<?= e($values['site_name'] ?? '') ?>" required></div><div class="field"><label>Tagline</label><input name="site_tagline" value="<?= e($values['site_tagline'] ?? '') ?>"></div><button class="btn primary" type="submit">Save settings</button></div></form>

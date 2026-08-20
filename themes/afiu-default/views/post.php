@@ -1,0 +1,1 @@
+<article class="article"><div class="eyebrow">Blog · <?= e(substr((string)$post['published_at'],0,10)) ?></div><h1><?= e($post['title']) ?></h1><?php if (!empty($post['excerpt'])): ?><p class="lead"><?= e($post['excerpt']) ?></p><?php endif; ?><div class="prose"><?= $post['body'] ?></div><div class="meta">Written by <?= e($post['author_name']) ?></div></article>
