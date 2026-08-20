@@ -54,6 +54,7 @@ final class MediaManager
         if (!$media) return;
         $path = rtrim((string) $this->config->get('paths.uploads'), '/') . '/' . $media['filename'];
         if (is_file($path)) @unlink($path);
+        $this->db->execute('UPDATE content SET featured_media_id = NULL WHERE featured_media_id = ?', [$id]);
         $this->db->execute('DELETE FROM media WHERE id = ?', [$id]);
     }
 

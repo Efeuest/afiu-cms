@@ -137,6 +137,11 @@ final class InstallController
                 'site_name' => $siteName,
                 'site_tagline' => 'Powered by AfiuCMS',
                 'active_theme' => 'afiu-default',
+                'site_description' => '',
+                'homepage_title' => $siteName,
+                'footer_text' => 'Powered by AfiuCMS',
+                'posts_per_page' => '10',
+                'search_engine_visibility' => '0',
             ];
 
             foreach ($settings as $key => $value) {
@@ -172,6 +177,7 @@ final class InstallController
                 'DB_PASSWORD' => $db['password'],
                 'SESSION_SECURE' => false,
                 'SESSION_SAME_SITE' => 'Lax',
+                'SESSION_IDLE_TIMEOUT' => 3600,
                 'UPLOAD_MAX_MB' => 10,
             ]);
 
@@ -183,7 +189,7 @@ final class InstallController
 
             if ((bool) $this->config->get('app.debug', false)) {
                 $message .= sprintf(
-                    ' [AfiuCMS 0.1.3-alpha | %s:%d]',
+                    ' [AfiuCMS 0.2.0-alpha | %s:%d]',
                     basename($e->getFile()),
                     $e->getLine()
                 );
@@ -211,7 +217,7 @@ final class InstallController
         }
 
         $entry = sprintf(
-            "[%s] AfiuCMS 0.1.3-alpha INSTALL FAILED: %s in %s:%d\n%s\n\n",
+            "[%s] AfiuCMS 0.2.0-alpha INSTALL FAILED: %s in %s:%d\n%s\n\n",
             date('c'),
             $e->getMessage(),
             $e->getFile(),

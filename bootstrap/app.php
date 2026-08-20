@@ -7,8 +7,10 @@ use AfiuCMS\Core\Config;
 use AfiuCMS\Core\Container;
 use AfiuCMS\Core\Database;
 use AfiuCMS\Core\ErrorHandler;
+use AfiuCMS\Core\MigrationRunner;
 use AfiuCMS\Core\Routing\Router;
 use AfiuCMS\Core\Session;
+use AfiuCMS\Core\ThemeManager;
 use AfiuCMS\Core\Middleware\EnsureInstalled;
 use AfiuCMS\Core\Middleware\SecurityHeaders;
 use AfiuCMS\Core\Middleware\VerifyCsrfToken;
@@ -30,9 +32,19 @@ Session::start($config, (string) $config->get('paths.sessions'));
 $container = new Container();
 $container->instance(Config::class, $config);
 $container->singleton(Database::class, fn (Container $c) => new Database($c->make(Config::class)));
+
+// Alpha updater: installed sites automatically apply pending additive migrations.
+// This keeps v0.1.x installations upgradeable without wiping user data.
+if ((bool) $config->get('app.installed', false)) {
+    (new MigrationRunner($container->make(Database::class), $config))->run();
+
+    // Theme assets are published as static public files for reliable, cacheable delivery.
+    $themeManager = $container->make(ThemeManager::class);
+    $themeManager->ensurePublished($themeManager->activeSlug());
+}
+
 $router = new Router($container);
 $container->instance(Router::class, $router);
-
 require AFIU_ROOT . '/routes/web.php';
 
 $app = new Application($container, $router);

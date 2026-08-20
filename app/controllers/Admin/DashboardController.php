@@ -17,11 +17,14 @@ final class DashboardController extends AdminController
     public function index(): Response
     {
         $counts = [
-            'pages' => (int) ($this->db->one("SELECT COUNT(*) AS c FROM content WHERE type='page'")['c'] ?? 0),
-            'posts' => (int) ($this->db->one("SELECT COUNT(*) AS c FROM content WHERE type='post'")['c'] ?? 0),
-            'media' => (int) ($this->db->one('SELECT COUNT(*) AS c FROM media')['c'] ?? 0),
+            'pages'=>(int)($this->db->one("SELECT COUNT(*) c FROM content WHERE type='page'")['c']??0),
+            'posts'=>(int)($this->db->one("SELECT COUNT(*) c FROM content WHERE type='post'")['c']??0),
+            'published'=>(int)($this->db->one("SELECT COUNT(*) c FROM content WHERE status='published'")['c']??0),
+            'media'=>(int)($this->db->one('SELECT COUNT(*) c FROM media')['c']??0),
+            'users'=>(int)($this->db->one('SELECT COUNT(*) c FROM users')['c']??0),
         ];
-        $recent = $this->db->all('SELECT id, type, title, status, updated_at FROM content ORDER BY updated_at DESC LIMIT 8');
-        return $this->page('admin.dashboard', compact('counts', 'recent'));
+        $recent = $this->db->all('SELECT c.id,c.type,c.title,c.status,c.updated_at,u.name author_name FROM content c JOIN users u ON u.id=c.author_id ORDER BY c.updated_at DESC LIMIT 8');
+        $activity = $this->db->all('SELECT a.*,u.name user_name FROM audit_logs a LEFT JOIN users u ON u.id=a.user_id ORDER BY a.created_at DESC LIMIT 7');
+        return $this->page('admin.dashboard', compact('counts','recent','activity'));
     }
 }

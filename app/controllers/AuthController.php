@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AfiuCMS\Controllers;
 
+use AfiuCMS\Core\AuditLogger;
 use AfiuCMS\Core\Auth;
 use AfiuCMS\Core\Flash;
 use AfiuCMS\Core\Http\Request;
@@ -13,7 +14,7 @@ use AfiuCMS\Core\View;
 
 final class AuthController
 {
-    public function __construct(private readonly Auth $auth, private readonly View $view) {}
+    public function __construct(private readonly Auth $auth, private readonly View $view, private readonly AuditLogger $audit) {}
 
     public function showLogin(): Response
     {
@@ -28,24 +29,19 @@ final class AuthController
             return Response::redirect('/admin/login');
         }
         if ($this->auth->attempt((string) $request->input('email'), (string) $request->input('password'))) {
-            Session::forget('login_failures');
-            Session::forget('login_locked_until');
+            Session::forget('login_failures'); Session::forget('login_locked_until');
+            $this->audit->record('auth.login', 'user', (int) ($this->auth->user()['id'] ?? 0));
             return Response::redirect('/admin');
         }
-        $failures = (int) Session::get('login_failures', 0) + 1;
-        Session::put('login_failures', $failures);
-        if ($failures >= 5) {
-            Session::put('login_locked_until', time() + 60);
-            Session::put('login_failures', 0);
-        }
+        $failures = (int) Session::get('login_failures', 0) + 1; Session::put('login_failures', $failures);
+        if ($failures >= 5) { Session::put('login_locked_until', time() + 60); Session::put('login_failures', 0); }
         Flash::put('error', 'Email or password is incorrect.');
         return Response::redirect('/admin/login');
     }
 
     public function logout(): Response
     {
-        $this->auth->logout();
-        Flash::put('success', 'You have been signed out.');
-        return Response::redirect('/admin/login');
+        $id=(int)($this->auth->user()['id']??0); if($id>0)$this->audit->record('auth.logout','user',$id);
+        $this->auth->logout(); Flash::put('success', 'You have been signed out.'); return Response::redirect('/admin/login');
     }
 }

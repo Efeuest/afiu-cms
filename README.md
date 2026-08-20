@@ -1,70 +1,72 @@
 # AfiuCMS
 
-AfiuCMS is an experimental, open-source CMS written in PHP 8.4. It is being built as a small, understandable core with a web installer, administration panel, content management, media library, settings and an installable theme system.
+AfiuCMS is a modern, open-source PHP content management system with a modular theme architecture.
 
-> **Alpha software:** this repository is under active development and is not production-ready yet.
+> **Current release:** `0.2.0-alpha` — development software, not yet recommended for production websites.
 
-## Current alpha features
+## Highlights
 
-- Web-based first-run installer
-- MySQL + PDO database layer and migration runner
-- Admin account creation and session authentication
-- CSRF protection for state-changing requests
-- Admin dashboard
-- Pages and blog posts CRUD
-- Draft/published content states
-- Basic media library with MIME validation and private storage
-- General site settings
-- Theme discovery, activation and ZIP installation
-- Bundled `Afiu Default` theme
-- Public homepage, pages, blog index and post routes
-- Environment configuration via `.env`
-- Error logging and development error screen
-- Apache rewrite file and PHP built-in-server router
+- Web installer and automatic additive database upgrades
+- Modern responsive administration console
+- Pages and posts with drafts, publishing, SEO metadata and revision snapshots
+- Categories and tags
+- Media library with protected file storage and alt text
+- Administrator, Editor and Author roles with backend authorization
+- Menu locations and menu item management
+- Global site/SEO settings
+- Audit/activity log
+- Secure sessions, CSRF protection, security headers and login throttling
+- ZIP theme installer with path traversal and symlink checks
+- Three bundled themes: **Afiu Default**, **Afiu Studio**, **Afiu Journal**
+- Public blog pagination, taxonomy archives and search
+- Small CLI (`bin/afiu`) for migrations/version checks
 
 ## Requirements
 
 - PHP 8.4+
+- MySQL 8+ / compatible MySQL server
 - Composer
-- MySQL 8+ or compatible MariaDB
-- PDO MySQL
-- Fileinfo
-- Zip extension for theme ZIP installation
+- PHP extensions: PDO MySQL, mbstring, fileinfo, zip (zip is needed for theme installation)
 
-## Local setup
+## Development
 
 ```bash
 composer install
 composer serve
 ```
 
-Then open `http://127.0.0.1:8000`. AfiuCMS will redirect to `/install` until installation is complete.
+Open `http://127.0.0.1:8000`.
 
-The installer asks for database credentials, site details and the first administrator account. It writes the local `.env`, runs migrations and creates the initial data.
+For an existing v0.1.x installation, replace application files while keeping `.env`, then run `composer install`. Pending migrations are applied automatically on boot; they can also be applied explicitly with:
 
-## Project structure
-
-```text
-afiu-cms/
-├── app/                 # Core, controllers and middleware
-├── bootstrap/           # Application bootstrapping
-├── config/              # Runtime configuration
-├── database/migrations/ # Database migrations
-├── public/              # Web root
-├── resources/views/     # Core/admin views
-├── routes/              # Route definitions
-├── storage/             # Logs, sessions, uploads and temporary files
-└── themes/              # Installable themes
+```bash
+php bin/afiu migrate
 ```
 
-## Theme packages
+## Theme structure
 
-A theme is a directory containing a `theme.json`, a `views/` directory and optional `assets/`. ZIP packages must place `theme.json` at the archive root. Themes are trusted code because PHP view files execute on the server; only install themes from sources you trust.
+```text
+themes/my-theme/
+├── theme.json
+├── assets/
+│   ├── style.css
+│   └── preview.svg
+└── views/
+    ├── layout.php
+    ├── home.php
+    ├── blog.php
+    ├── post.php
+    ├── page.php
+    ├── search.php
+    └── 404.php
+```
 
-## Security status
+Theme PHP files execute server-side code. Install third-party themes only from sources you trust.
 
-The alpha includes password hashing, session regeneration, CSRF protection, prepared SQL statements, MIME-checked media uploads, private upload storage and ZIP path validation. It still needs a broader security review, automated tests, permissions/roles beyond administrator, hardened deployment documentation and release signing before production use.
+## Roadmap
+
+Next major areas: block editor, plugin API, update channels, backups/import-export, scheduled publishing, richer menu builder, theme customizer, REST API and automated test coverage.
 
 ## License
 
-MIT
+MIT.

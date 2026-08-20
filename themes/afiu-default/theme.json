@@ -1,7 +1,8 @@
 {
   "name": "Afiu Default",
   "slug": "afiu-default",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "AfiuCMS",
-  "description": "The bundled minimal starter theme for AfiuCMS."
+  "description": "A refined dark starter theme focused on clarity, speed and strong typography.",
+  "preview": "preview.svg"
 }

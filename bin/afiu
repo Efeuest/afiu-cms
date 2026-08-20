@@ -1,0 +1,7 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+use AfiuCMS\Core\Config;use AfiuCMS\Core\Database;use AfiuCMS\Core\MigrationRunner;use Dotenv\Dotenv;
+define('AFIU_ROOT',dirname(__DIR__));require AFIU_ROOT.'/vendor/autoload.php';Dotenv::createImmutable(AFIU_ROOT)->safeLoad();$config=new Config();$config->loadDirectory(AFIU_ROOT.'/config');$command=$argv[1]??'help';
+if($command==='migrate'){$ran=(new MigrationRunner(new Database($config),$config))->run();echo $ran?"Applied:\n - ".implode("\n - ",$ran)."\n":"Database is up to date.\n";exit(0);}if($command==='version'){echo 'AfiuCMS '.$config->get('app.version')."\n";exit(0);}echo "AfiuCMS CLI\n\nCommands:\n  migrate   Apply pending database migrations\n  version   Show AfiuCMS version\n";

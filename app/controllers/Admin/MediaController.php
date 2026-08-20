@@ -1,44 +1,11 @@
 <?php
 
 declare(strict_types=1);
-
 namespace AfiuCMS\Controllers\Admin;
-
-use AfiuCMS\Core\Auth;
-use AfiuCMS\Core\Database;
-use AfiuCMS\Core\Flash;
-use AfiuCMS\Core\Http\Request;
-use AfiuCMS\Core\Http\Response;
-use AfiuCMS\Core\MediaManager;
-use AfiuCMS\Core\Settings;
-use AfiuCMS\Core\View;
-use Throwable;
-
-final class MediaController extends AdminController
-{
-    public function __construct(View $view, Auth $auth, Settings $settings, private readonly Database $db, private readonly MediaManager $media) { parent::__construct($view, $auth, $settings); }
-
-    public function index(): Response
-    {
-        $items = $this->db->all('SELECT m.*, u.name uploader FROM media m JOIN users u ON u.id=m.uploaded_by ORDER BY m.created_at DESC');
-        return $this->page('admin.media.index', compact('items'));
-    }
-
-    public function upload(Request $request): Response
-    {
-        try {
-            $this->media->store($request->file('media') ?? [], (int) ($this->auth->user()['id'] ?? 0));
-            Flash::put('success', 'Media uploaded.');
-        } catch (Throwable $e) {
-            Flash::put('error', $e->getMessage());
-        }
-        return Response::redirect('/admin/media');
-    }
-
-    public function delete(string $id): Response
-    {
-        $this->media->delete((int) $id);
-        Flash::put('success', 'Media deleted.');
-        return Response::redirect('/admin/media');
-    }
+use AfiuCMS\Core\AuditLogger;use AfiuCMS\Core\Auth;use AfiuCMS\Core\Database;use AfiuCMS\Core\Flash;use AfiuCMS\Core\Gate;use AfiuCMS\Core\Http\Request;use AfiuCMS\Core\Http\Response;use AfiuCMS\Core\MediaManager;use AfiuCMS\Core\Settings;use AfiuCMS\Core\View;use Throwable;
+final class MediaController extends AdminController{
+ public function __construct(View $v,Auth $a,Settings $s,private readonly Database $db,private readonly MediaManager $media,private readonly Gate $gate,private readonly AuditLogger $audit){parent::__construct($v,$a,$s);} public function index(Request $r):Response{if(!$this->gate->allows('media.manage'))return $this->forbidden();$q=trim((string)$r->query('q',''));$items=$q===''?$this->db->all('SELECT m.*,u.name uploader FROM media m JOIN users u ON u.id=m.uploaded_by ORDER BY m.created_at DESC'):$this->db->all('SELECT m.*,u.name uploader FROM media m JOIN users u ON u.id=m.uploaded_by WHERE m.original_name LIKE ? OR m.alt_text LIKE ? ORDER BY m.created_at DESC',['%'.$q.'%','%'.$q.'%']);return $this->page('admin.media.index',compact('items','q'));}
+ public function upload(Request $r):Response{if(!$this->gate->allows('media.manage'))return $this->forbidden();try{$id=$this->media->store($r->file('media')??[],(int)($this->auth->user()['id']??0));$this->audit->record('media.uploaded','media',$id);Flash::put('success','Media uploaded.');}catch(Throwable $e){Flash::put('error',$e->getMessage());}return Response::redirect('/admin/media');}
+ public function update(Request $r,string $id):Response{if(!$this->gate->allows('media.manage'))return $this->forbidden();$this->db->execute('UPDATE media SET alt_text=? WHERE id=?',[mb_substr(trim((string)$r->input('alt_text')),0,255),(int)$id]);$this->audit->record('media.updated','media',(int)$id);Flash::put('success','Media details updated.');return Response::redirect('/admin/media');}
+ public function delete(string $id):Response{if(!$this->gate->allows('media.manage'))return $this->forbidden();$this->media->delete((int)$id);$this->audit->record('media.deleted','media',(int)$id);Flash::put('success','Media deleted.');return Response::redirect('/admin/media');}
 }

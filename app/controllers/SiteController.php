@@ -1,43 +1,17 @@
 <?php
 
 declare(strict_types=1);
-
 namespace AfiuCMS\Controllers;
-
-use AfiuCMS\Core\Database;
-use AfiuCMS\Core\Http\Response;
-use AfiuCMS\Core\Settings;
-use AfiuCMS\Core\ThemeManager;
-
-final class SiteController
-{
-    public function __construct(private readonly Database $db, private readonly Settings $settings, private readonly ThemeManager $themes) {}
-
-    public function home(): Response
-    {
-        $posts = $this->db->all("SELECT id,title,slug,excerpt,published_at FROM content WHERE type='post' AND status='published' ORDER BY published_at DESC LIMIT 6");
-        return Response::html($this->themes->render('home', ['settings' => $this->settings->all(), 'posts' => $posts]));
-    }
-
-    public function blog(): Response
-    {
-        $posts = $this->db->all("SELECT id,title,slug,excerpt,published_at FROM content WHERE type='post' AND status='published' ORDER BY published_at DESC LIMIT 100");
-        return Response::html($this->themes->render('blog', ['settings' => $this->settings->all(), 'posts' => $posts]));
-    }
-
-    public function post(string $slug): Response
-    {
-        $post = $this->db->one("SELECT c.*, u.name author_name FROM content c JOIN users u ON u.id=c.author_id WHERE c.type='post' AND c.slug=? AND c.status='published' LIMIT 1", [$slug]);
-        return $post
-            ? Response::html($this->themes->render('post', ['settings' => $this->settings->all(), 'post' => $post]))
-            : Response::html($this->themes->render('404', ['settings' => $this->settings->all()]), 404);
-    }
-
-    public function page(string $slug): Response
-    {
-        $page = $this->db->one("SELECT c.*, u.name author_name FROM content c JOIN users u ON u.id=c.author_id WHERE c.type='page' AND c.slug=? AND c.status='published' LIMIT 1", [$slug]);
-        return $page
-            ? Response::html($this->themes->render('page', ['settings' => $this->settings->all(), 'page' => $page]))
-            : Response::html($this->themes->render('404', ['settings' => $this->settings->all()]), 404);
-    }
+use AfiuCMS\Core\Database;use AfiuCMS\Core\Http\Request;use AfiuCMS\Core\Http\Response;use AfiuCMS\Core\MenuManager;use AfiuCMS\Core\Settings;use AfiuCMS\Core\ThemeManager;
+final class SiteController{
+ public function __construct(private readonly Database $db,private readonly Settings $settings,private readonly ThemeManager $themes,private readonly MenuManager $menus){}
+ private function shared(array $extra=[]):array{$settings=$this->settings->all();return $extra+['settings'=>$settings,'menu'=>$this->menus->location('primary'),'footerMenu'=>$this->menus->location('footer')];}
+ public function home():Response{$posts=$this->db->all("SELECT c.*,m.id featured_id FROM content c LEFT JOIN media m ON m.id=c.featured_media_id WHERE c.type='post' AND c.status='published' ORDER BY c.published_at DESC LIMIT 6");$seo=['title'=>$this->settings->get('homepage_title',$this->settings->get('site_name','AfiuCMS')),'description'=>$this->settings->get('site_description','')];return Response::html($this->themes->render('home',$this->shared(compact('posts','seo'))));}
+ public function blog(Request $r):Response{$per=max(1,min(50,(int)$this->settings->get('posts_per_page','10')));$page=max(1,(int)$r->query('page',1));$total=(int)($this->db->one("SELECT COUNT(*) c FROM content WHERE type='post' AND status='published'")['c']??0);$offset=($page-1)*$per;$posts=$this->db->all("SELECT * FROM content WHERE type='post' AND status='published' ORDER BY published_at DESC LIMIT {$per} OFFSET {$offset}");$pagination=['page'=>$page,'pages'=>max(1,(int)ceil($total/$per))];$seo=['title'=>'Blog — '.$this->settings->get('site_name','AfiuCMS'),'description'=>$this->settings->get('site_description','')];return Response::html($this->themes->render('blog',$this->shared(compact('posts','pagination','seo'))));}
+ public function search(Request $r):Response{$q=trim((string)$r->query('q',''));$results=$q===''?[]:$this->db->all("SELECT type,title,slug,excerpt,published_at FROM content WHERE status='published' AND (title LIKE ? OR excerpt LIKE ? OR body LIKE ?) ORDER BY published_at DESC LIMIT 50",array_fill(0,3,'%'.$q.'%'));$seo=['title'=>'Search — '.$this->settings->get('site_name','AfiuCMS'),'description'=>'Search results'];return Response::html($this->themes->render('search',$this->shared(compact('q','results','seo'))));}
+ public function category(string $slug):Response{return $this->taxonomy($slug,'category');} public function tag(string $slug):Response{return $this->taxonomy($slug,'tag');}
+ private function taxonomy(string $slug,string $type):Response{$term=$this->db->one('SELECT * FROM taxonomies WHERE type=? AND slug=?',[$type,$slug]);if(!$term)return $this->notFound();$posts=$this->db->all("SELECT c.* FROM content c JOIN content_taxonomy ct ON ct.content_id=c.id WHERE ct.taxonomy_id=? AND c.type='post' AND c.status='published' ORDER BY c.published_at DESC",[(int)$term['id']]);$title=ucfirst($type).': '.$term['name'];$seo=['title'=>$title.' — '.$this->settings->get('site_name','AfiuCMS'),'description'=>$term['description']??''];return Response::html($this->themes->render('blog',$this->shared(['posts'=>$posts,'pagination'=>['page'=>1,'pages'=>1],'archiveTitle'=>$title,'seo'=>$seo])));}
+ public function post(string $slug):Response{$post=$this->db->one("SELECT c.*,u.name author_name FROM content c JOIN users u ON u.id=c.author_id WHERE c.type='post' AND c.slug=? AND c.status='published' LIMIT 1",[$slug]);if(!$post)return $this->notFound();$terms=$this->db->all('SELECT t.* FROM taxonomies t JOIN content_taxonomy ct ON ct.taxonomy_id=t.id WHERE ct.content_id=? ORDER BY t.type,t.name',[(int)$post['id']]);$seo=['title'=>$post['seo_title']?:$post['title'].' — '.$this->settings->get('site_name','AfiuCMS'),'description'=>$post['seo_description']?:$post['excerpt'],'canonical'=>$post['canonical_url']?:null];return Response::html($this->themes->render('post',$this->shared(compact('post','terms','seo'))));}
+ public function page(string $slug):Response{$page=$this->db->one("SELECT c.*,u.name author_name FROM content c JOIN users u ON u.id=c.author_id WHERE c.type='page' AND c.slug=? AND c.status='published' LIMIT 1",[$slug]);if(!$page)return $this->notFound();$seo=['title'=>$page['seo_title']?:$page['title'].' — '.$this->settings->get('site_name','AfiuCMS'),'description'=>$page['seo_description']?:$page['excerpt'],'canonical'=>$page['canonical_url']?:null];return Response::html($this->themes->render('page',$this->shared(compact('page','seo'))));}
+ private function notFound():Response{$seo=['title'=>'Page not found — '.$this->settings->get('site_name','AfiuCMS'),'description'=>''];return Response::html($this->themes->render('404',$this->shared(compact('seo'))),404);}
 }

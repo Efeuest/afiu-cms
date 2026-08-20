@@ -1,0 +1,9 @@
+AfiuCMS v0.2.0-alpha upgrade
+
+1. Keep your existing .env file.
+2. Copy the contents of this archive over the root of your existing AfiuCMS repository.
+3. Run: composer install
+4. Start the app. Pending additive database migrations are applied automatically.
+5. Confirm /health reports 0.2.0-alpha.
+
+Optional explicit migration command: php bin/afiu migrate

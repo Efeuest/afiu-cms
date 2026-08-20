@@ -1,32 +1,33 @@
 {
-  "name": "afiusoft/afiu-cms",
-  "description": "A modern, open-source content management system with a modular theme architecture.",
-  "type": "project",
-  "license": "MIT",
-  "require": {
-    "php": "^8.4",
-    "ext-fileinfo": "*",
-    "ext-json": "*",
-    "ext-pdo": "*",
-    "ext-pdo_mysql": "*",
-    "vlucas/phpdotenv": "^5.6"
-  },
-  "suggest": {
-    "ext-zip": "Required to install themes from ZIP packages"
-  },
-  "autoload": {
-    "psr-4": {
-      "AfiuCMS\\": "app/"
+    "name": "afiusoft/afiu-cms",
+    "description": "A modern, open-source content management system with a modular theme architecture.",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "ext-fileinfo": "*",
+        "ext-json": "*",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*",
+        "vlucas/phpdotenv": "^5.6"
     },
-    "files": [
-      "app/helpers.php"
-    ]
-  },
-  "scripts": {
-    "serve": "@php -d opcache.enable_cli=0 -S 127.0.0.1:8000 -t public public/router.php"
-  },
-  "config": {
-    "optimize-autoloader": true,
-    "sort-packages": true
-  }
+    "suggest": {
+        "ext-zip": "Required to install themes from ZIP packages"
+    },
+    "autoload": {
+        "psr-4": {
+            "AfiuCMS\\": "app/"
+        },
+        "files": [
+            "app/helpers.php"
+        ]
+    },
+    "scripts": {
+        "serve": "@php -d opcache.enable_cli=0 -S 127.0.0.1:8000 -t public public/router.php",
+        "afiu:migrate": "@php bin/afiu migrate"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
 }
