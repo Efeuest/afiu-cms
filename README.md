@@ -2,7 +2,7 @@
 
 AfiuCMS is a modern, open-source PHP content management system with a modular theme architecture.
 
-> **Current release:** `0.2.0-alpha` — development software, not yet recommended for production websites.
+> **Current release:** `0.2.1-alpha` — development software, not yet recommended for production websites.
 
 ## Highlights
 
